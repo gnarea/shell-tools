@@ -8,11 +8,6 @@
 EDITOR="${VISUAL-${EDITOR-nano}}"
 
 
-function usage {
-    error_out 1 "Usage: ${0##*/} S3_OBJECT_URL"
-}
-
-
 function quiet_s3_cp {
     local source="$1"
     local destination="$2"
@@ -25,7 +20,7 @@ function quiet_s3_cp {
 
 
 if [[ $# != 1 ]]; then
-    usage
+    error_out 1 "Usage: ${0##*/} S3_OBJECT_URL"
 fi
 S3_OBJECT_URL="$1"
 
