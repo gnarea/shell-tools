@@ -1,0 +1,12 @@
+#!/bin/bash
+. "$(dirname $BASH_SOURCE)/_bootstrap.sh"
+
+
+if [[ $# != 1 ]]; then
+    error_out 1 "Usage: ${0##*/} S3_OBJECT_URL"
+fi
+S3_OBJECT_URL="$1"
+
+if ! aws s3 ls "${S3_OBJECT_URL}" >> /dev/null; then
+    echo '' | aws s3 cp - "${S3_OBJECT_URL}" >> /dev/null
+fi
