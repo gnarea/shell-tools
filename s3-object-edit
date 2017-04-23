@@ -1,0 +1,40 @@
+#!/bin/bash
+. "$(dirname $BASH_SOURCE)/_bootstrap.sh"
+
+
+# ===== Constants and functions
+
+
+EDITOR="${VISUAL-${EDITOR-nano}}"
+
+
+function usage {
+    error_out 1 "Usage: ${0##*/} S3_OBJECT_URL"
+}
+
+
+function quiet_s3_cp {
+    local source="$1"
+    local destination="$2"
+
+    aws s3 cp "${source}" "${destination}" >> /dev/null
+}
+
+
+# ===== Main
+
+
+if [[ $# != 1 ]]; then
+    usage
+fi
+S3_OBJECT_URL="$1"
+
+TMP_FILE_PATH="$(mktemp)"
+quiet_s3_cp "${S3_OBJECT_URL}" "${TMP_FILE_PATH}"
+if "${EDITOR}" "${TMP_FILE_PATH}"; then
+    if quiet_s3_cp "${TMP_FILE_PATH}" "${S3_OBJECT_URL}"; then
+        shred --remove "${TMP_FILE_PATH}"
+    else
+        error_out 2 "File saved at ${TMP_FILE_PATH}"
+    fi
+fi
