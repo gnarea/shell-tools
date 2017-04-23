@@ -27,10 +27,10 @@ S3_OBJECT_URL="$1"
 S3_OBJECT_NAME="$(basename "${S3_OBJECT_URL}")"
 TMP_FILE_PATH="$(mktemp --suffix="${S3_OBJECT_NAME}")"
 quiet_s3_cp "${S3_OBJECT_URL}" "${TMP_FILE_PATH}"
-if "${EDITOR}" "${TMP_FILE_PATH}"; then
-    if quiet_s3_cp "${TMP_FILE_PATH}" "${S3_OBJECT_URL}"; then
-        shred --remove "${TMP_FILE_PATH}"
-    else
-        error_out 2 "File saved at ${TMP_FILE_PATH}"
-    fi
+if "${EDITOR}" "${TMP_FILE_PATH}" && \
+    quiet_s3_cp "${TMP_FILE_PATH}" "${S3_OBJECT_URL}";
+then
+    shred --remove "${TMP_FILE_PATH}"
+else
+    error_out 2 "File saved at ${TMP_FILE_PATH}"
 fi
