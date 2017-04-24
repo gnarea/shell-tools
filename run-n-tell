@@ -1,0 +1,35 @@
+#!/bin/bash
+. "$(dirname $BASH_SOURCE)/_bootstrap.sh"
+
+
+# ===== Constants and functions
+
+
+function report_completion {
+    local command_name="$1"
+    local return_code="$2"
+
+    if [[ "${return_code}" == "0" ]]; then
+        icon_name='task-complete'
+        outcome_label='succeeded'
+    else
+        icon_name='task-reject'
+        outcome_label='failed'
+    fi
+
+    notify-send --icon="${icon_name}" "${command_name} ${outcome_label}"
+}
+
+
+# ===== Main
+
+
+if [[ $# < 1 ]]; then
+    echo "Usage: ${0##*/} COMMAND [ARGS...]" >&2
+    exit 1
+fi
+
+
+RETURN_CODE="$(exec_and_return_code $@)"
+report_completion "$1" "${RETURN_CODE}"
+exit "${RETURN_CODE}"
