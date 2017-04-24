@@ -30,6 +30,5 @@ if [[ $# < 1 ]]; then
 fi
 
 
-RETURN_CODE="$(exec_and_return_code $@)"
-report_completion "$1" "${RETURN_CODE}"
-exit "${RETURN_CODE}"
+trap "report_completion \"$1\" \"\$?\"" EXIT
+$@
