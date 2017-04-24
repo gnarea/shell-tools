@@ -10,10 +10,10 @@ function report_completion {
     local return_code="$2"
 
     if [[ "${return_code}" == "0" ]]; then
-        icon_name='task-complete'
+        icon_name='dialog-information'
         outcome_label='succeeded'
     else
-        icon_name='task-reject'
+        icon_name='dialog-error'
         outcome_label='failed'
     fi
 
