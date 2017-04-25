@@ -1,0 +1,89 @@
+#!/bin/bash
+. "$(dirname $BASH_SOURCE)/_bootstrap.sh"
+
+
+# ===== Constants and functions
+
+
+DEFAULT_REMOTE_USER='ec2-user'
+
+KNOWN_HOSTS_FILE_PATH="$HOME/.ssh/ec2_known_hosts"
+
+IP_ADDRESS_JMES_PATH='Reservations[].Instances[].[PublicIpAddress]'
+
+
+function get_ip_address_for_instance_id {
+    local instance_id="$1"
+
+    aws ec2 describe-instances \
+        --instance-ids "${instance_id}" \
+        --query "${IP_ADDRESS_JMES_PATH}" \
+        --output text
+}
+
+
+function get_random_instance_address_for_asg {
+    local asg_name="$1"
+
+    local ip_address_jmespath="
+        Reservations[].
+            Instances[?
+                State.Name!='terminated' &&
+                Tags[?Key=='aws:autoscaling:groupName' && Value=='${asg_name}']
+                ].
+            [PublicIpAddress]
+    "
+    local instances_ip_addresses="$(
+        aws ec2 describe-instances \
+            --query "${ip_address_jmespath}" \
+            --output text
+    )"
+    if [[ "${instances_ip_addresses}" ]]; then
+        echo "${instances_ip_addresses}" | head --lines=1
+    else
+        error_out 2 "Could not find any running instance in ASG ${asg_name}"
+    fi
+}
+
+
+function fetch_ip_address_for_target {
+    local target="$1"
+
+    if [[ "${target}" =~ ^i- ]]; then
+        get_ip_address_for_instance_id "${target}"
+    elif is_ip_address "${target}"; then
+        echo "${target}"
+    else
+        get_random_instance_address_for_asg "${target}"
+    fi
+}
+
+
+function is_ip_address {
+    local ip_address="$1"
+
+    [[ "${ip_address}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+        || \
+        [[ "${ip_address}" =~ ^[0-9a-f:]*:[0-9a-f:]*$ ]]
+}
+
+
+# ===== Main
+
+
+if [[ $# < 1 ]]; then
+    error_out \
+        1 \
+        "Usage: ${0##*/} ASG_NAME|INSTANCE_ID|IP_ADDR [REMOTE_COMMAND...]"
+fi
+TARGET="$1"
+REMOTE_COMMAND="${@:2}"
+
+
+IP_ADDRESS="$(fetch_ip_address_for_target "${TARGET}")"
+REMOTE_USER="${REMOTE_USER-${DEFAULT_REMOTE_USER}}"
+exec ssh \
+    -o "User ${REMOTE_USER}" \
+    -o "UserKnownHostsFile ${KNOWN_HOSTS_FILE_PATH}" \
+    "${IP_ADDRESS}" \
+    ${REMOTE_COMMAND}

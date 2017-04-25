@@ -16,5 +16,5 @@ function error_out() {
     local exit_message="$2"
 
     echo_stderr "$exit_message"
-    exit "$exit_code"
+    return "$exit_code"
 }
