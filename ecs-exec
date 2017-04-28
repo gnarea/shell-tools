@@ -49,5 +49,10 @@ CONTAINER_FILTER="label=com.amazonaws.ecs.container-name=${CONTAINER_NAME}"
 
 "$(dirname $BASH_SOURCE)/ec2-ssh" "${ECS_INSTANCE_IP_ADDRESS}" bash <<EOF
 CONTAINER_ID="\$(docker ps --filter '${CONTAINER_FILTER}' -q)"
-docker exec -it "\${CONTAINER_ID}" ${CONTAINER_COMMAND}
+if [[ "\${CONTAINER_ID}" ]]; then
+    docker exec "\${CONTAINER_ID}" ${CONTAINER_COMMAND}
+else
+    echo "Container '${CONTAINER_NAME}' not found" 2>&1
+    exit 2
+fi
 EOF
