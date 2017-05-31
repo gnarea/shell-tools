@@ -1,0 +1,15 @@
+#!/bin/bash
+. "$(dirname $BASH_SOURCE)/_bootstrap.sh"
+
+
+TF_PLAN_PATH="$(mktemp)"
+trap "rm '${TF_PLAN_PATH}'" INT TERM EXIT
+
+terraform plan $@ "-out=${TF_PLAN_PATH}"
+
+if [ -f "${TF_PLAN_PATH}" ]; then
+    read -p "Apply? Enter 'yes' to confirm: " confirmation
+    if [[ "${confirmation,,}" == "yes" ]]; then
+        terraform apply ${@} "${TF_PLAN_PATH}"
+    fi
+fi
