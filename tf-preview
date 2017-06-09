@@ -50,7 +50,7 @@ function main {
 
 
 if [[ $# == 0 ]] || ! [[ "$1" =~ ^(apply|destroy)$ ]]; then
-    error_out 1 "Usage: ${0##*/} apply|destroy [ARGS...]" >&2
+    error_out 1 "Usage: ${0##*/} apply|destroy [ARGS...]"
 fi
 
 main $@
