@@ -7,6 +7,8 @@ trap "rm '${TF_PLAN_PATH}'" INT TERM EXIT
 
 terraform plan $@ "-out=${TF_PLAN_PATH}"
 
+notify-unfocused --icon=dialog-information 'Terraform plan is ready'
+
 if [ -f "${TF_PLAN_PATH}" ]; then
     read -p "Apply? Enter 'yes' to confirm: " confirmation
     if [[ "${confirmation,,}" == "yes" ]]; then
