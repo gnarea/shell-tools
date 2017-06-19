@@ -3,6 +3,9 @@ set -o errexit
 set -o pipefail
 
 
+PATH="$(dirname "$BASH_SOURCE"):$PATH"
+
+
 # ===== Utilities
 
 

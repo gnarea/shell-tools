@@ -17,16 +17,15 @@ function report_completion {
         outcome_label='failed'
     fi
 
-    notify-send --icon="${icon_name}" "${command_name} ${outcome_label}"
+    notify-unfocused --icon="${icon_name}" "${command_name} ${outcome_label}"
 }
 
 
 # ===== Main
 
 
-if [[ $# < 1 ]]; then
-    echo "Usage: ${0##*/} COMMAND [ARGS...]" >&2
-    exit 1
+if [[ $# == 0 ]]; then
+    error_out 1 "Usage: ${0##*/} COMMAND [ARGS...]"
 fi
 
 

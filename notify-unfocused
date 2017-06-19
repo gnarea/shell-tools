@@ -1,0 +1,49 @@
+#!/bin/bash
+. "$(dirname $BASH_SOURCE)/_bootstrap.sh"
+
+
+# ===== Constants and functions
+
+
+function get_related_pids {
+    local pid="$1"
+
+    pstree --show-pids --show-parents "${pid}" | \
+        grep --only-matching '([0-9]\+)' | \
+        grep --only-matching '[0-9]\+'
+}
+
+
+function get_focused_window_id {
+    xdpyinfo | \
+        egrep --only-matching 'window 0x[^,]+' | \
+        cut --delimiter=" " --fields=2
+}
+
+
+function get_window_pid {
+    local window_id="$1"
+
+    xprop -id "${window_id}" | grep 'PID' | cut --delimiter=" " --fields=3
+}
+
+
+function is_current_process_from_focused_window {
+    local active_window_id="$(get_focused_window_id)"
+    local active_window_pid="$(get_window_pid "${active_window_id}" || true)"
+
+    get_related_pids $$ | grep --quiet "^${active_window_pid}$"
+}
+
+
+# ===== Main
+
+
+if [[ $# == 0 ]]; then
+    error_out 1 "Usage: ${0##*/} NOTIFY_SEND_ARGS..."
+fi
+
+
+if ! is_current_process_from_focused_window; then
+    notify-send $@
+fi
