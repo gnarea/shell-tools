@@ -2,16 +2,48 @@
 . "$(dirname $BASH_SOURCE)/_bootstrap.sh"
 
 
+# ===== Constants and functions
+
+
+TF_PLAN_WITH_DIFF_EXIT_CODE='2'
+
+
+function tf_plan {
+    local plan_path="$1"
+    local extra_args="${@:2}"
+
+    local plan_exit_code='0'
+    terraform plan ${extra_args} "-out=${plan_path}" -detailed-exitcode || \
+        plan_exit_code="$?"
+
+    [[ "${plan_exit_code}" == "${TF_PLAN_WITH_DIFF_EXIT_CODE}" ]]
+}
+
+
+function tf_apply_with_confirmation {
+    local plan_path="$1"
+    local extra_args="${@:2}"
+
+    read -p "Apply? Enter 'yes' to confirm: " confirmation
+    if [[ "${confirmation,,}" == "yes" ]]; then
+        run-n-tell terraform apply ${extra_args} "${plan_path}"
+    fi
+}
+
+
+# ===== Main
+
+
 TF_PLAN_PATH="$(mktemp)"
 trap "rm '${TF_PLAN_PATH}'" INT TERM EXIT
 
-terraform plan "$@" "-out=${TF_PLAN_PATH}"
-
-notify-unfocused --icon=dialog-information 'Terraform plan is ready'
-
-if [ -f "${TF_PLAN_PATH}" ]; then
-    read -p "Apply? Enter 'yes' to confirm: " confirmation
-    if [[ "${confirmation,,}" == "yes" ]]; then
-        run-n-tell terraform apply "$@" "${TF_PLAN_PATH}"
-    fi
+if tf_plan "${TF_PLAN_PATH}" "$@"; then
+    notify-unfocused \
+        --icon=dialog-information \
+        'Confirm application of Terraform plan'
+    tf_apply_with_confirmation "${TF_PLAN_PATH}" "$@"
+else
+    notify-unfocused \
+        --icon=dialog-information \
+        'Terraform plan complete, but nothing to apply'
 fi
