@@ -10,6 +10,6 @@ fi
 GIT_TAG_PREFIX="${1:-}"
 GIT_REMOTE_NAME="${2:-"origin"}"
 
-GIT_TAG="${GIT_TAG_PREFIX}$(date '+%y%m%d%H%M%S')"
+GIT_TAG="${GIT_TAG_PREFIX}$(TZ=":UTC" date '+%y%m%d%H%M%S')"
 git tag "${GIT_TAG}"
 git push "${GIT_REMOTE_NAME}" "refs/tags/${GIT_TAG}"
