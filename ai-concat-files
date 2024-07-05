@@ -1,0 +1,64 @@
+#!/bin/bash
+. "$(dirname "${BASH_SOURCE}")/_bootstrap.sh"
+
+# Arguments
+
+DIR_PATH="${1:-.}"
+
+# Constants
+
+GENERATED_FILES=(
+    "package-lock.json"
+    "gradle/wrapper"
+    "LICENSE"
+)
+
+# Functions
+
+is_text_file() {
+    local file_path="$1"
+    LC_ALL=C grep --quiet --binary-files=without-match '.' "${file_path}" 2>/dev/null
+}
+
+is_git_repo() {
+    git rev-parse --is-inside-work-tree >/dev/null 2>&1
+}
+
+list_files() {
+    if is_git_repo; then
+        local rel_path="$(git rev-parse --show-prefix)"
+        rel_path="${rel_path:-.}"
+        git ls-files -z -- "$rel_path"
+    else
+        find . -type f -print0
+    fi
+}
+
+should_skip_file() {
+    local file="$1"
+    for pattern in "${GENERATED_FILES[@]}"; do
+        if [[ "$file" == *"$pattern"* ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Main
+
+cd "$DIR_PATH"
+
+cat <<EOF
+Each file below is preceded by the line \`@@@@@ FILE_PATH @@@@@\`,
+where \`FILE_PATH\` is the relative path of the file,
+and followed by three blank lines.
+
+EOF
+
+list_files | while IFS= read -d '' -r file; do
+    if ! should_skip_file "$file" && is_text_file "$file"; then
+        echo "@@@@@ ${file} @@@@@"
+        cat "$file"
+        printf '\n\n\n'
+    fi
+done
