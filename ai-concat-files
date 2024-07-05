@@ -1,4 +1,6 @@
 #!/bin/bash
+# Concatenate files in a directory, in an output format meant for LLMs.
+
 . "$(dirname "${BASH_SOURCE}")/_bootstrap.sh"
 
 # Arguments
