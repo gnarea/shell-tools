@@ -28,9 +28,7 @@ is_git_repo() {
 
 list_files() {
     if is_git_repo; then
-        local rel_path="$(git rev-parse --show-prefix)"
-        rel_path="${rel_path:-.}"
-        git ls-files -z -- "$rel_path"
+        git ls-files -z
     else
         find . -type f -print0
     fi
