@@ -13,6 +13,9 @@ GENERATED_FILES=(
     "package-lock.json"
     "gradle/wrapper"
     "LICENSE"
+    ".terraform.lock.hcl"
+    "*.drawio"
+    "*.svg"
 )
 
 # Functions
@@ -37,7 +40,7 @@ list_files() {
 should_skip_file() {
     local file="$1"
     for pattern in "${GENERATED_FILES[@]}"; do
-        if [[ "$file" == *"$pattern"* ]]; then
+        if [[ "$file" == "$pattern" || "$file" = */$pattern ]]; then
             return 0
         fi
     done
