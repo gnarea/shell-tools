@@ -1,4 +1,4 @@
-# Personal Bash utilities
+# Personal Bash tools
 
 - `ai-concat-files`: Concatenate files in a directory, in an output format meant for LLMs.
 - `notify-unfocused`: Sends a notification using `notify-send` only if the current process is not from the focused window.
